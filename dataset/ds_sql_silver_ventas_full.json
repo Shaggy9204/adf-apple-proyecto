@@ -1,0 +1,65 @@
+{
+	"name": "ds_sql_silver_ventas_full",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_dw_apple",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Silver"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Sale_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "Sale_Date",
+				"type": "date"
+			},
+			{
+				"name": "Product_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "Quantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Store_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "Store_Name",
+				"type": "varchar"
+			},
+			{
+				"name": "City",
+				"type": "varchar"
+			},
+			{
+				"name": "Country",
+				"type": "varchar"
+			},
+			{
+				"name": "Claim_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "Claim_Date",
+				"type": "date"
+			},
+			{
+				"name": "Repair_Status",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "SILVER",
+			"table": "VENTAS_FULL"
+		}
+	}
+}
