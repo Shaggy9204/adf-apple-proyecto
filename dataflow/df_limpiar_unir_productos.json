@@ -49,6 +49,9 @@
 				},
 				{
 					"name": "select1"
+				},
+				{
+					"name": "aggregate2"
 				}
 			],
 			"scriptLines": [
@@ -93,7 +96,7 @@
 				"    toDate(trim(Launch_Date), 'yyyy.MM.dd'),\r",
 				"    toDate(trim(Launch_Date), 'dd-MM-yyyy')\r",
 				")) ~> derivedColumn2",
-				"aggregate1, derivedColumn2 join(category_id_clean == Category_ID,",
+				"aggregate1, aggregate2 join(category_id_clean == Category_ID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -108,6 +111,11 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
+				"derivedColumn2 aggregate(groupBy(Product_ID),",
+				"     Product_Name = first(Product_Name),",
+				"          Category_ID = first(Category_ID),",
+				"          Date_Clean = first(Date_Clean),",
+				"          Price_Clean = first(Price_Clean)) ~> aggregate2",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -122,6 +130,7 @@
 				"     insertable:true,",
 				"     updateable:false,",
 				"     upsertable:false,",
+				"     truncate:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",

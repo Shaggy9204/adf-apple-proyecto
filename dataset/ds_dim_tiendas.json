@@ -1,0 +1,41 @@
+{
+	"name": "ds_dim_tiendas",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_dw_apple",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Gold"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "STR_KEY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STR_NM",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STR_CITY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STR_CNTRY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STR_OPENED_YR",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "GOLD",
+			"table": "DIM_TIENDAS"
+		}
+	}
+}
