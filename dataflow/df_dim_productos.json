@@ -1,0 +1,69 @@
+{
+	"name": "df_dim_productos",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_productos_full",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dim_productos",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          Product_ID as string,",
+				"          Product_Name as string,",
+				"          Category_ID as string,",
+				"          Category_Name as string,",
+				"          Launch_Date as date,",
+				"          Price as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    Product_ID,\\n    Product_Name,\\n    Category_Name,\\n    Price,\\n    Launch_Date\\nFROM [SILVER].[PRODUCTOS_FULL]',",
+				"     format: 'query') ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PRD_KEY as string,",
+				"          PRD_NM as string,",
+				"          PRD_CAT as string,",
+				"          PRD_PRICE as decimal(10,2),",
+				"          PRD_LAUNCH_DT as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          PRD_KEY = Product_ID,",
+				"          PRD_NM = Product_Name,",
+				"          PRD_CAT = Category_Name,",
+				"          PRD_PRICE = Price,",
+				"          PRD_LAUNCH_DT = Launch_Date",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

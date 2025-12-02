@@ -1,0 +1,66 @@
+{
+	"name": "df_dim_tiendas",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_ventas_full",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dim_tiendas",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          Store_ID as string,",
+				"          Store_Name as string,",
+				"          City as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT \\n    Store_ID,\\n    Store_Name,\\n    City,\\n    Country\\nFROM [SILVER].[VENTAS_FULL]\\nWHERE Store_ID IS NOT NULL\\n\\n',",
+				"     format: 'query') ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          STR_KEY as string,",
+				"          STR_NM as string,",
+				"          STR_CITY as string,",
+				"          STR_CNTRY as string,",
+				"          STR_OPENED_YR as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          STR_KEY = Store_ID,",
+				"          STR_NM = Store_Name,",
+				"          STR_CITY = City,",
+				"          STR_CNTRY = Country",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

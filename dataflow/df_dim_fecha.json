@@ -1,0 +1,69 @@
+{
+	"name": "df_dim_fecha",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_ventas_full",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dim_fecha",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          FECHA as date,",
+				"          ANIO as integer,",
+				"          MES as integer,",
+				"          DIA as integer,",
+				"          NOMBRE_MES as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT \\n       Fecha AS FECHA,\\n       YEAR(Fecha) AS ANIO,\\n       MONTH(Fecha) AS MES,\\n       DAY(Fecha) AS DIA,\\n       DATENAME(MONTH, Fecha) AS NOMBRE_MES\\nFROM (\\n      -- Traemos fechas de venta\\n      SELECT Sale_Date AS Fecha FROM [SILVER].[VENTAS_FULL]\\n      UNION\\n      -- Unimos las fechas de reclamo (para que no falle la tabla de garantías)\\n      SELECT Claim_Date AS Fecha FROM [SILVER].[VENTAS_FULL]\\n) AS MisFechas\\nWHERE Fecha IS NOT NULL',",
+				"     format: 'query') ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ID_FECHA as integer,",
+				"          FECHA as date,",
+				"          ANIO as integer,",
+				"          MES as integer,",
+				"          DIA as integer,",
+				"          NOMBRE_MES as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          FECHA,",
+				"          ANIO,",
+				"          MES,",
+				"          DIA,",
+				"          NOMBRE_MES",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
