@@ -1,5 +1,5 @@
 {
-	"name": "df_hechos_garantia",
+	"name": "df_hechos_ventas",
 	"properties": {
 		"folder": {
 			"name": "Gold"
@@ -23,16 +23,23 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_dim_fecha",
+						"referenceName": "ds_dim_tiendas",
 						"type": "DatasetReference"
 					},
 					"name": "source3"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_fecha",
+						"type": "DatasetReference"
+					},
+					"name": "source4"
 				}
 			],
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ds_hechos_garantia",
+						"referenceName": "ds_hechos_ventas",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
@@ -46,33 +53,45 @@
 					"name": "lookup2"
 				},
 				{
-					"name": "select1"
+					"name": "lookup3"
 				},
 				{
-					"name": "filter1"
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
 				"source(output(",
-				"          Claim_ID as string,",
-				"          Claim_Date as date,",
-				"          Product_ID as string,",
 				"          Sale_ID as string,",
-				"          Repair_Status as string",
+				"          Sale_Date as date,",
+				"          Product_ID as string,",
+				"          Store_ID as string,",
+				"          Quantity as integer",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT Claim_ID, Claim_Date, Product_ID, Sale_ID, Repair_Status FROM [SILVER].[VENTAS_FULL] WHERE Claim_ID IS NOT NULL',",
+				"     query: 'SELECT Sale_ID, Sale_Date, Product_ID, Store_ID, Quantity FROM [SILVER].[VENTAS_FULL]',",
 				"     format: 'query') ~> source1",
 				"source(output(",
-				"          PRD_KEY as string",
+				"          PRD_KEY as string,",
+				"          PRD_PRICE as decimal(10,2)",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT PRD_KEY FROM [GOLD].[DIM_PRODUCTOS]',",
+				"     query: 'SELECT PRD_KEY, PRD_PRICE FROM [GOLD].[DIM_PRODUCTOS]',",
 				"     format: 'query') ~> source2",
+				"source(output(",
+				"          STR_KEY as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT STR_KEY FROM [GOLD].[DIM_TIENDAS]',",
+				"     format: 'query') ~> source3",
 				"source(output(",
 				"          ID_FECHA as integer,",
 				"          FECHA as date",
@@ -81,34 +100,40 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT ID_FECHA, FECHA FROM [GOLD].[DIM_FECHA]',",
-				"     format: 'query') ~> source3",
+				"     format: 'query') ~> source4",
 				"source1, source2 lookup(Product_ID == PRD_KEY,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup1",
-				"lookup1, source3 lookup(Claim_Date == FECHA,",
+				"lookup1, source3 lookup(Store_ID == STR_KEY,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup2",
-				"lookup2 select(mapColumn(",
-				"          Claim_ID,",
+				"lookup2, source4 lookup(Sale_Date == FECHA,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup3",
+				"lookup3 derive(SLS_TOTAL_AMT = Quantity * PRD_PRICE) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
 				"          Sale_ID,",
 				"          PRD_KEY,",
+				"          STR_KEY,",
 				"          ID_FECHA,",
-				"          Repair_Status",
+				"          Quantity,",
+				"          SLS_TOTAL_AMT",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1 filter(!isNull(Claim_ID) && upper(toString(Claim_ID)) != 'N/A' && upper(toString(Claim_ID)) != 'NA' && trim(toString(Claim_ID)) != '') ~> filter1",
-				"filter1 sink(allowSchemaDrift: true,",
+				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
-				"          ID_HECHOS_WAR as integer,",
-				"          WAR_CLAIM_ID as string,",
-				"          WAR_SALE_ID as string,",
-				"          WAR_PRD_KEY as string,",
-				"          ID_FECHA_RECLAMO as integer,",
-				"          WAR_STATUS as string",
+				"          ID_HECHOS as integer,",
+				"          SLS_ORD_NUM as string,",
+				"          SLS_PRD_KEY as string,",
+				"          SLS_STR_KEY as string,",
+				"          ID_FECHA_VENTA as integer,",
+				"          SLS_QUANTITY as integer,",
+				"          SLS_TOTAL_AMT as decimal(12,2)",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -119,11 +144,12 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          WAR_CLAIM_ID = Claim_ID,",
-				"          WAR_SALE_ID = Sale_ID,",
-				"          WAR_PRD_KEY = PRD_KEY,",
-				"          ID_FECHA_RECLAMO = ID_FECHA,",
-				"          WAR_STATUS = Repair_Status",
+				"          SLS_ORD_NUM = Sale_ID,",
+				"          SLS_PRD_KEY = PRD_KEY,",
+				"          SLS_STR_KEY = STR_KEY,",
+				"          ID_FECHA_VENTA = ID_FECHA,",
+				"          SLS_QUANTITY = Quantity,",
+				"          SLS_TOTAL_AMT",
 				"     )) ~> sink1"
 			]
 		}
