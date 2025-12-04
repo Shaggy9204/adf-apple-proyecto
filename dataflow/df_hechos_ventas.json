@@ -132,7 +132,9 @@
 				"          FECHA_VENTA as date,",
 				"          SLS_QUANTITY as integer,",
 				"          SLS_TOTAL_AMT as decimal(12,2),",
+				"          WAR_CLAIM_ID as string,",
 				"          WAR_STATUS as string,",
+				"          WAR_DATE as date,",
 				"          WAR_IS_CLAIM as integer",
 				"     ),",
 				"     deletable:false,",
@@ -149,7 +151,9 @@
 				"          FECHA_VENTA = FECHA,",
 				"          SLS_QUANTITY = Quantity,",
 				"          SLS_TOTAL_AMT,",
+				"          WAR_CLAIM_ID = Claim_ID,",
 				"          WAR_STATUS = Repair_Status,",
+				"          WAR_DATE = Claim_Date,",
 				"          WAR_IS_CLAIM",
 				"     )) ~> sink1"
 			]

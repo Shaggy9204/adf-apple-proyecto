@@ -26,11 +26,6 @@
 			{
 				"name": "STR_CNTRY",
 				"type": "nvarchar"
-			},
-			{
-				"name": "STR_OPENED_YR",
-				"type": "int",
-				"precision": 10
 			}
 		],
 		"typeProperties": {

@@ -44,8 +44,16 @@
 				"scale": 2
 			},
 			{
+				"name": "WAR_CLAIM_ID",
+				"type": "nvarchar"
+			},
+			{
 				"name": "WAR_STATUS",
 				"type": "nvarchar"
+			},
+			{
+				"name": "WAR_DATE",
+				"type": "date"
 			},
 			{
 				"name": "WAR_IS_CLAIM",
