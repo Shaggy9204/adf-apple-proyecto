@@ -29,9 +29,8 @@
 				"type": "nvarchar"
 			},
 			{
-				"name": "ID_FECHA_VENTA",
-				"type": "int",
-				"precision": 10
+				"name": "FECHA_VENTA",
+				"type": "date"
 			},
 			{
 				"name": "SLS_QUANTITY",
