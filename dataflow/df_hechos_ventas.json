@@ -56,9 +56,6 @@
 					"name": "lookup3"
 				},
 				{
-					"name": "filter1"
-				},
-				{
 					"name": "derivedColumn1"
 				}
 			],
@@ -119,8 +116,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup3",
-				"lookup3 filter(!isNull(PRD_KEY) && !isNull(ID_FECHA) && !isNull(STR_KEY)) ~> filter1",
-				"filter1 derive(SLS_TOTAL_AMT = Quantity * PRD_PRICE,",
+				"lookup3 derive(SLS_TOTAL_AMT = Quantity * PRD_PRICE,",
 				"          WAR_IS_CLAIM = iif(toString(Claim_ID) == 'N/A' || isNull(Claim_ID), 0, 1)) ~> derivedColumn1",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",

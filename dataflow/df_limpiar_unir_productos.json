@@ -97,7 +97,7 @@
 				"    toDate(trim(Launch_Date), 'dd-MM-yyyy')\r",
 				")) ~> derivedColumn2",
 				"aggregate1, aggregate2 join(category_id_clean == Category_ID,",
-				"     joinType:'inner',",
+				"     joinType:'right',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
