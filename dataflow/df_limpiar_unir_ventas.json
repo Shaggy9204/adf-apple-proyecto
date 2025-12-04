@@ -104,7 +104,7 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> source3",
 				"source1 derive(Store_Name = replace(replace(Store_Name, \"'\", \"\"), '\"', \"\"),",
-				"          City = trim(City),",
+				"          City = trim(replace(replace(toString(City), \"'\", \"\"), '\"', \"\")),",
 				"          Country = trim(Country),",
 				"          Store_ID = trim(Store_ID)) ~> derivedColumn1",
 				"derivedColumn1 aggregate(groupBy(Store_ID),",

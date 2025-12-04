@@ -1,0 +1,155 @@
+{
+	"name": "df_hechos_ventas",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_ventas_full",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_productos",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_tiendas",
+						"type": "DatasetReference"
+					},
+					"name": "source3"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_fecha",
+						"type": "DatasetReference"
+					},
+					"name": "source4"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_hechos_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "lookup3"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Sale_ID as string,",
+				"          Sale_Date as date,",
+				"          Product_ID as string,",
+				"          Quantity as integer,",
+				"          Store_ID as string,",
+				"          Store_Name as string,",
+				"          City as string,",
+				"          Country as string,",
+				"          Claim_ID as string,",
+				"          Claim_Date as date,",
+				"          Repair_Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT * FROM [SILVER].[VENTAS_FULL]',",
+				"     format: 'query') ~> source1",
+				"source(output(",
+				"          PRD_KEY as string,",
+				"          PRD_PRICE as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT PRD_KEY, PRD_PRICE FROM [GOLD].[DIM_PRODUCTOS]',",
+				"     format: 'query') ~> source2",
+				"source(output(",
+				"          STR_KEY as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT STR_KEY FROM [GOLD].[DIM_TIENDAS]',",
+				"     format: 'query') ~> source3",
+				"source(output(",
+				"          ID_FECHA as integer,",
+				"          FECHA as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT ID_FECHA, FECHA FROM [GOLD].[DIM_FECHA]',",
+				"     format: 'query') ~> source4",
+				"source1, source2 lookup(Product_ID == PRD_KEY,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1, source3 lookup(Store_ID == STR_KEY,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup2",
+				"lookup2, source4 lookup(Sale_Date == FECHA,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup3",
+				"lookup3 filter(!isNull(PRD_KEY) && !isNull(ID_FECHA) && !isNull(STR_KEY)) ~> filter1",
+				"filter1 derive(SLS_TOTAL_AMT = Quantity * PRD_PRICE) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ID_HECHOS as integer,",
+				"          SLS_ORD_NUM as string,",
+				"          SLS_PRD_KEY as string,",
+				"          SLS_STR_KEY as string,",
+				"          ID_FECHA_VENTA as integer,",
+				"          SLS_QUANTITY as integer,",
+				"          SLS_TOTAL_AMT as decimal(12,2),",
+				"          WAR_STATUS as string,",
+				"          WAR_IS_CLAIM as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SLS_ORD_NUM = Sale_ID,",
+				"          SLS_PRD_KEY = PRD_KEY,",
+				"          SLS_STR_KEY = STR_KEY,",
+				"          ID_FECHA_VENTA = FECHA,",
+				"          SLS_TOTAL_AMT",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
