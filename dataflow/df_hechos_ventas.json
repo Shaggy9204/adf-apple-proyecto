@@ -27,13 +27,6 @@
 						"type": "DatasetReference"
 					},
 					"name": "source3"
-				},
-				{
-					"dataset": {
-						"referenceName": "ds_dim_fecha",
-						"type": "DatasetReference"
-					},
-					"name": "source4"
 				}
 			],
 			"sinks": [
@@ -51,9 +44,6 @@
 				},
 				{
 					"name": "lookup2"
-				},
-				{
-					"name": "lookup3"
 				},
 				{
 					"name": "derivedColumn1"
@@ -95,15 +85,6 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT STR_KEY FROM [GOLD].[DIM_TIENDAS]',",
 				"     format: 'query') ~> source3",
-				"source(output(",
-				"          ID_FECHA as integer,",
-				"          FECHA as date",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT ID_FECHA, FECHA FROM [GOLD].[DIM_FECHA]',",
-				"     format: 'query') ~> source4",
 				"source1, source2 lookup(Product_ID == PRD_KEY,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -112,11 +93,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup2",
-				"lookup2, source4 lookup(Sale_Date == FECHA,",
-				"     multiple: false,",
-				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookup3",
-				"lookup3 derive(SLS_TOTAL_AMT = Quantity * PRD_PRICE,",
+				"lookup2 derive(SLS_TOTAL_AMT = Quantity * PRD_PRICE,",
 				"          WAR_IS_CLAIM = iif(toString(Claim_ID) == 'N/A' || isNull(Claim_ID), 0, 1)) ~> derivedColumn1",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -144,7 +121,7 @@
 				"     mapColumn(",
 				"          SLS_PRD_KEY = PRD_KEY,",
 				"          SLS_STR_KEY = STR_KEY,",
-				"          FECHA_VENTA = FECHA,",
+				"          FECHA_VENTA = Sale_Date,",
 				"          SLS_QUANTITY = Quantity,",
 				"          SLS_TOTAL_AMT,",
 				"          WAR_CLAIM_ID = Claim_ID,",
